@@ -1,20 +1,50 @@
 
+class Header extends React.Component {
+
+    render(){
+        return(
+                <nav className="my-header">
+                    <div>
+                        <img className="myImg" src="https://www.freepnglogos.com/uploads/eagle-png-logo/morehead-state-eagle-png-logo-8.png">
+                        </img>
+                    </div>
+                    <div>
+                        <h4>My Todo List</h4>
+                    </div>
+                    <div>
+                        <div className="invisible"></div>
+                    </div>
+                </nav>
+        )
+    }
+}
+
 
  // Component responsible for the list of done things. 
 class Finished extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            finished: ["do homework", "go out"]
+            finished: []
         }
         this.makeRedo = this.makeRedo.bind(this);
     }
 
     // should deliever the info back to the todo list.
     makeRedo(e){
+        console.log(e.target.innerHTML)
         this.props.bringBack(e.target.innerHTML);
         let that = document.getElementById(e.target.id);
+        let currentArray = this.state.finished; 
+        //console.log(currentArray)
+        let index = currentArray.indexOf(e.target.innerHTML);
+       // console.log(index)
+        currentArray.splice(index,1);
+        //console.log(currentArray);
         e.target.parentNode.removeChild(that);
+        this.setState({
+            finished: currentArray
+        })
     }
 
     // supposed to update the array of done things by updating state.
@@ -26,22 +56,13 @@ class Finished extends React.Component {
                 finished
             }) 
         } 
-        let doneItem =  document.querySelector(".new-item");
-        for(let i = 0; i<doneItem.length; i++){
-            doneItem[i].addEventListener("click", this.makeRedo )
-        }
-    }
-
-    // adds an event listener to allow to move it to todo list. 
-
-    componentDidMount() {
-        document.querySelector(".new-item").addEventListener("click", this.makeRedo )
+        //console.log(newProps)
     }
 
     render(){
         let myDoneList = this.state.finished.map( 
-            (x, i)=> <li id={x} onClick={this.makeRedo} key={`doneItem${i}`} className="new-item"
-            >{x}</li>
+            (x, i)=> <h3 id={x} onClick={this.makeRedo} key={`doneItem${i}`} className="new-item"
+            >{x}</h3>
          )  
         return(
             <div>
@@ -78,10 +99,21 @@ class DoneList extends React.Component {
     }
 
     updateList(e){
-        this.setState({
-            done: e.target.innerHTML
-        })
-        e.target.parentNode.firstElementChild.remove()
+
+        if(e.target.innerHTML == "X"){
+            e.target.parentElement.remove();
+
+
+        }else {
+            this.setState({
+                done: e.target.innerHTML
+            })
+             var child =  e.target.parentNode.lastElementChild;  
+                while (child) { 
+                e.target.parentNode.removeChild(child); 
+                child =  e.target.parentNode.lastElementChild; 
+            }
+        }     
     }
 
     componentDidMount() {
@@ -91,6 +123,7 @@ class DoneList extends React.Component {
     returnBack(event){     
         var itemsArr=this.state.itemsArr;
         itemsArr.push(event)
+        console.log(itemsArr);
         this.setState({
             itemsArr,   
         })    
@@ -98,7 +131,7 @@ class DoneList extends React.Component {
 
     render(){
         let name = this.state.itemsArr.map( 
-            (x, i)=> <h4 onClick={this.updateList} className="list-item" key={i}
+            (x, i)=> <h4 id={i} onClick={this.updateList} className="list-item" key={i}
             >{x}<span key={i} className="float-right">X</span></h4>
          )
        
@@ -147,11 +180,10 @@ class App extends React.Component {
     constructor(){
         super()
     }
-
     render(){
         return(
             <div className="container">
-                 <h1>My ToDo List</h1>
+                <Header/>
                 <TodoList/>
             </div>
           
