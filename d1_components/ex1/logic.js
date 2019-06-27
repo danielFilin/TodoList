@@ -23,7 +23,6 @@ class Header extends React.Component {
 class Finished extends React.Component {
     constructor(props){
         super(props)
-  
         this.state = {
             finished: this.props.finished
         }
@@ -32,32 +31,26 @@ class Finished extends React.Component {
 
     // should deliever the info back to the todo list.
     makeRedo(e){
-        this.props.bringBack(e.target.innerHTML);
-      
-
-        let currentArray = this.state.finished; 
-        let index = currentArray.indexOf(e.target.innerHTML);
- 
-        currentArray.splice(index,1);
-        console.log(currentArray)
-        this.setState({
-            finished: currentArray
-        })
+        if(e.target.innerHTML === "X"){
+            let currentArray = this.state.finished; 
+            let index = currentArray.indexOf(e.target.innerHTML);
+            currentArray.splice(index,1);
+         
+            this.setState({
+                finished: currentArray
+            })
+        }else{
+            this.props.bringBack(e.target.innerHTML);
+            let currentArray = this.state.finished; 
+            let index = currentArray.indexOf(e.target.innerHTML);
+            currentArray.splice(index,1);
+            console.log(currentArray)
+            this.setState({
+                finished: currentArray
+            })
+        }
     }
 
- 
-
-    // supposed to update the array of done things by updating state.
-    // componentWillReceiveProps(newProps){
-        
-    //     if(newProps.finished !== ""){
-    //         let finished=this.state.finished;
-    //         finished.push(newProps.finished)
-    //         this.setState({
-    //             finished
-    //         }) 
-    //     } 
-    // }
 
     render(){
     
@@ -66,7 +59,7 @@ class Finished extends React.Component {
 
         let myDoneList = myItems.map( 
             (x, i)=> <h3 id={x} onClick={this.makeRedo}  key={`doneItem${i}`} className="new-item"
-            >{x}</h3>
+            >{x}<span key={i} className="float-right">X</span></h3>
          )  
         return(
             <div>
@@ -89,6 +82,7 @@ class DoneList extends React.Component {
         }
         this.returnBack = this.returnBack.bind(this);
         this.updateList = this.updateList.bind(this);
+        this.markImportant = this.markImportant.bind(this);
     }
     componentWillReceiveProps(newProps){
         this.setState({
@@ -102,7 +96,20 @@ class DoneList extends React.Component {
   
     }
 
+    markImportant(e){
+        console.log(e.nextSibling)
+        e.nextSibling.classList.contains("important")? e.nextSibling.classList.remove('important'): e.nextSibling.classList.add('important');
+        let tempArr = this.state.itemsArr;
+        let index = tempArr.indexOf(e.nextSibling.innerHTML);
+        tempArr.splice(index, 1);
+        tempArr.unshift(e.nextSibling.innerHTML);
+        this.setState({
+            itemsArr: tempArr
+        })
+    }
+
     updateList(e){  
+            console.log(e.target.previousSibling == null && e.target.nextSibling == null)
         if(e.target.innerHTML == "X"){
             let currentArray = this.state.itemsArr; 
             let index = currentArray.indexOf(e.target.innerHTML);
@@ -111,6 +118,9 @@ class DoneList extends React.Component {
             this.setState({
                 itemsArr: currentArray
             })
+        }else if(e.target.innerHTML == "Mark Important") {
+            this.markImportant(e.target);
+         
         }else {
             let tempArr = this.state.doneArr;
             tempArr.push(e.target.innerHTML);
@@ -143,7 +153,7 @@ class DoneList extends React.Component {
 
         let name = this.state.itemsArr.map( 
             (x, i)=> <h4 id={i} onClick={this.updateList} className="list-item" key={i}
-            >{x}<span key={i} className="float-right">X</span></h4>
+            ><span key={i} className="float-left important">Mark Important</span>{x}<span key={"delete"+i} className="float-right">X</span></h4>
          )
        
         return(
@@ -164,7 +174,6 @@ class TodoList extends React.Component {
         this.state = {
             text : ""
         }
-
         this.updateList = this.updateList.bind(this);
     }
 
@@ -179,13 +188,14 @@ class TodoList extends React.Component {
         return(
             <div>
                 <button onClick={this.updateList} className="btn btn-primary mb-3 mt-3">Add new Todo</button>
-                <input  className="form-control w-75"></input>
+                <input placeholder="What do you plan to do?"  className="form-control w-75"></input>
+                <input placeholder="Add description"  className="form-control w-75"></input>
+                <input type="date"  className="form-control w-25"></input>
                 <DoneList newItem={this.state.text}/>
             </div>
         )
     }
 }
-
 
 class App extends React.Component {
     constructor(){
@@ -196,11 +206,9 @@ class App extends React.Component {
             <div className="container">
                 <Header/>
                 <TodoList/>
-            </div>
-          
+            </div>       
         )
     }
-
 }
 
 

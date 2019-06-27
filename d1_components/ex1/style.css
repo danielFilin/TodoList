@@ -29,3 +29,10 @@ body {
 justify-content: flex-start;
 padding-left:10px;
 }
+
+.important{
+    color: red;
+    font-size: 0.8rem;
+    font-weight: 600; 
+    margin-right: 2%;
+}
