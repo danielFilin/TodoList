@@ -26,12 +26,10 @@ class Finished extends React.Component {
                 finished
             }) 
         } 
-
         let doneItem =  document.querySelector(".new-item");
         for(let i = 0; i<doneItem.length; i++){
             doneItem[i].addEventListener("click", this.makeRedo )
         }
-        console.log(doneItem)
     }
 
     // adds an event listener to allow to move it to todo list. 
@@ -41,14 +39,10 @@ class Finished extends React.Component {
     }
 
     render(){
-       
-        //let num = Math.random();
         let myDoneList = this.state.finished.map( 
-            (x)=> <li id={x} onClick={this.makeRedo} key={`doneItem${x}`} className="new-item"
+            (x, i)=> <li id={x} onClick={this.makeRedo} key={`doneItem${i}`} className="new-item"
             >{x}</li>
-         )
-         //console.log(myDoneList.length)
-       
+         )  
         return(
             <div>
                 <h2>Done List</h2>
@@ -75,32 +69,15 @@ class DoneList extends React.Component {
         this.setState({
             done: ""
         })
-         
-        
         var itemsArr=this.state.itemsArr;
         itemsArr.push(newProps.newItem)
         this.setState({
             itemsArr,   
         })     
-   
-        var articleFirst = document.querySelectorAll(".list-item");
-       
-        //console.log(articleFirst)
-       // Now I can do - for each of the todos add an event listener. 
-       for(let i = 0; i<articleFirst.length; i++){
-        articleFirst[i].addEventListener('click' , (e) => {
-            //console.log(e.target.innerHTML)
-            this.setState({
-                done: e.target.innerHTML
-            })
-            e.target.parentNode.firstElementChild.remove()
-       })
-       }
   
     }
 
     updateList(e){
-        console.log(e.target.innerHTML)
         this.setState({
             done: e.target.innerHTML
         })
@@ -109,8 +86,6 @@ class DoneList extends React.Component {
 
     componentDidMount() {
         document.querySelector(".list-item").addEventListener('click' , this.updateList) 
-          
-     
     }
 
     returnBack(event){     
@@ -123,10 +98,10 @@ class DoneList extends React.Component {
 
     render(){
         let name = this.state.itemsArr.map( 
-            (x)=> <h4 onClick={this.updateList} className="list-item" key={x}
-            >{x}</h4>
+            (x, i)=> <h4 onClick={this.updateList} className="list-item" key={i}
+            >{x}<span key={i} className="float-right">X</span></h4>
          )
-        // console.log(name)
+       
         return(
             <div>
                 <ul>
