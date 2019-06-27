@@ -19,49 +19,53 @@ class Header extends React.Component {
     }
 }
 
-
  // Component responsible for the list of done things. 
 class Finished extends React.Component {
     constructor(props){
         super(props)
+  
         this.state = {
-            finished: []
+            finished: this.props.finished
         }
         this.makeRedo = this.makeRedo.bind(this);
     }
 
     // should deliever the info back to the todo list.
     makeRedo(e){
-        console.log(e.target.innerHTML)
         this.props.bringBack(e.target.innerHTML);
-        let that = document.getElementById(e.target.id);
+      
+
         let currentArray = this.state.finished; 
-        //console.log(currentArray)
         let index = currentArray.indexOf(e.target.innerHTML);
-       // console.log(index)
+ 
         currentArray.splice(index,1);
-        //console.log(currentArray);
-        e.target.parentNode.removeChild(that);
+        console.log(currentArray)
         this.setState({
             finished: currentArray
         })
     }
 
+ 
+
     // supposed to update the array of done things by updating state.
-    componentWillReceiveProps(newProps){
-        if(newProps.finished !== ""){
-            let finished=this.state.finished;
-            finished.push(newProps.finished)
-            this.setState({
-                finished
-            }) 
-        } 
-        //console.log(newProps)
-    }
+    // componentWillReceiveProps(newProps){
+        
+    //     if(newProps.finished !== ""){
+    //         let finished=this.state.finished;
+    //         finished.push(newProps.finished)
+    //         this.setState({
+    //             finished
+    //         }) 
+    //     } 
+    // }
 
     render(){
-        let myDoneList = this.state.finished.map( 
-            (x, i)=> <h3 id={x} onClick={this.makeRedo} key={`doneItem${i}`} className="new-item"
+    
+        let myItems = this.state.finished;
+        console.log(myItems)
+
+        let myDoneList = myItems.map( 
+            (x, i)=> <h3 id={x} onClick={this.makeRedo}  key={`doneItem${i}`} className="new-item"
             >{x}</h3>
          )  
         return(
@@ -81,7 +85,7 @@ class DoneList extends React.Component {
         this.state = {
             itemsArr : ["Some Great Stuff", "more fun stuff"],
             done: "",
-            value: ""
+            doneArr: []
         }
         this.returnBack = this.returnBack.bind(this);
         this.updateList = this.updateList.bind(this);
@@ -98,38 +102,45 @@ class DoneList extends React.Component {
   
     }
 
-    updateList(e){
-
+    updateList(e){  
         if(e.target.innerHTML == "X"){
-            e.target.parentElement.remove();
-
-
-        }else {
+            let currentArray = this.state.itemsArr; 
+            let index = currentArray.indexOf(e.target.innerHTML);
+            currentArray.splice(index,1);
+         
             this.setState({
-                done: e.target.innerHTML
+                itemsArr: currentArray
             })
-             var child =  e.target.parentNode.lastElementChild;  
-                while (child) { 
-                e.target.parentNode.removeChild(child); 
-                child =  e.target.parentNode.lastElementChild; 
-            }
-        }     
-    }
+        }else {
+            let tempArr = this.state.doneArr;
+            tempArr.push(e.target.innerHTML);
 
-    componentDidMount() {
-        document.querySelector(".list-item").addEventListener('click' , this.updateList) 
+            this.setState({
+                done: e.target.innerHTML,
+                doneArr: tempArr
+            })
+            let currentArray = this.state.itemsArr; 
+            let index = currentArray.indexOf(e.target.innerHTML);
+            currentArray.splice(index,1);
+            this.setState({
+                itemsArr: currentArray
+            })
+          
+        }
+
     }
 
     returnBack(event){     
         var itemsArr=this.state.itemsArr;
         itemsArr.push(event)
-        console.log(itemsArr);
         this.setState({
             itemsArr,   
         })    
     }
 
     render(){
+
+
         let name = this.state.itemsArr.map( 
             (x, i)=> <h4 id={i} onClick={this.updateList} className="list-item" key={i}
             >{x}<span key={i} className="float-right">X</span></h4>
@@ -140,7 +151,7 @@ class DoneList extends React.Component {
                 <ul>
                     {name}
                 </ul>
-                <Finished bringBack={this.returnBack} finished={this.state.done}/>
+                <Finished bringBack={this.returnBack} finished={this.state.doneArr}/>
             </div>
            
         )
@@ -197,3 +208,5 @@ ReactDOM.render(
     <App/>,
     document.getElementById("root")
 );
+
+
