@@ -36,3 +36,21 @@ padding-left:10px;
     font-weight: 600; 
     margin-right: 2%;
 }
+
+.myList{
+    width: 100%;
+}
+
+.my-list-item{
+    width: 51%;
+    display: inline-block; 
+}
+
+.my-date{
+    margin-left: 2%; 
+}
+
+.description{
+    width: 30%; 
+    display: inline-block
+}
