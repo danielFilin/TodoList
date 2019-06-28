@@ -8,7 +8,7 @@ body {
 
 .my-header{
     width: 100%;
-    height:  60px;
+    height:  fit-content;
     display: flex;
     justify-content: space-between;
     padding:5px;
@@ -16,7 +16,7 @@ body {
 
 .myImg{
     position: relative;
-    height: 90%;   
+    height: 50px;   
 }
 
 .my-header >div {
@@ -53,4 +53,12 @@ padding-left:10px;
 .description{
     width: 30%; 
     display: inline-block
+}
+
+.reminder{
+    cursor: pointer;
+}
+
+.reminder-settings{
+    display: none; 
 }

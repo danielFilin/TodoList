@@ -1,7 +1,35 @@
 
 class Header extends React.Component {
+    constructor(){
+        super()
+        this.state = {
+            reminderDate: "",
+            currentTime: ""
+        }
+        this.showReminder = this.showReminder.bind(this);
+        this.setReminder = this.setReminder.bind(this);
+    }
+
+    showReminder(e){
+        !e.target.nextSibling.classList.contains("reminder-settings")? e.target.nextSibling.classList.add("reminder-settings"): e.target.nextSibling.classList.remove("reminder-settings");
+    }
+
+    setReminder(e){
+       
+        let current_datetime = new Date();
+        let formatted_date = current_datetime.getHours() +":" +  current_datetime.getMinutes() +" " + current_datetime.getDate() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getFullYear()
+        console.log(formatted_date)
+      
+        this.setState({
+            reminderDate: e.target.parentNode.firstElementChild.value,
+            currentTime: formatted_date
+        })
+        console.log(this.state.currentTime, this.state.reminderDate)
+
+    }
 
     render(){
+      
         return(
                 <nav className="my-header">
                     <div>
@@ -12,7 +40,13 @@ class Header extends React.Component {
                         <h4>My Todo List</h4>
                     </div>
                     <div>
-                        <div className="invisible"></div>
+                        <h5 onClick={this.showReminder} className="reminder">set a general reminder</h5>
+                        <ul className="reminder-settings">
+                            <input type="datetime-local"></input>
+                            <span>Description</span>
+                            <input placeholder="describe your event" type="text"></input>
+                            <button onClick={this.setReminder} className="btn btn-info">Set Reminder</button>
+                        </ul> 
                     </div>
                 </nav>
         )
@@ -28,35 +62,44 @@ class Finished extends React.Component {
             description: this.props.description
         }
         this.makeRedo = this.makeRedo.bind(this);
+        this.deleteItem = this.deleteItem.bind(this);
+        this.updateState = this.updateState.bind(this)
+    }
+
+
+    deleteItem(e){
+        let currentArray = this.state.finished; 
+        let currentDescription = this.state.description;
+        let index = currentArray.indexOf(e.target.innerHTML);
+        currentArray.splice(index,1);
+        currentDescription.splice(index, 1);
+        this.setState({
+            finished: currentArray,
+            description: currentDescription
+        })
+    }
+
+    updateState(e){
+        let currentArray = this.state.finished; 
+        let currentDescription = this.state.description; 
+        let index = currentArray.indexOf(e.target.innerHTML);
+        let item = currentDescription[index];
+        this.props.bringBackDescription({description: item.description, dueDate: item.dueDate});
+        currentArray.splice(index,1);
+        currentDescription.splice(index, 1);
+        this.setState({
+            finished: currentArray,
+            description: currentDescription
+        })
     }
 
     // should deliever the info back to the todo list.
     makeRedo(e){
         if(e.target.innerHTML === "X"){
-            let currentArray = this.state.finished; 
-            let currentDescription = this.state.description;
-            let index = currentArray.indexOf(e.target.innerHTML);
-            currentArray.splice(index,1);
-            currentDescription.splice(index, 1);
-            this.setState({
-                finished: currentArray,
-                description: currentDescription
-            })
+            this.deleteItem(e);
         }else{
             this.props.bringBack(e.target.innerHTML);
-
-            let currentArray = this.state.finished; 
-            let currentDescription = this.state.description; 
-            let index = currentArray.indexOf(e.target.innerHTML);
-            let item = currentDescription[index];
-            this.props.bringBackDescription({description: item.description, dueDate: item.dueDate});
-            currentArray.splice(index,1);
-            currentDescription.splice(index, 1);
-            console.log(currentArray)
-            this.setState({
-                finished: currentArray,
-                description: currentDescription
-            })
+            this.updateState(e);
         }
     }
 
@@ -103,12 +146,12 @@ class DoneList extends React.Component {
         this.handleBlur = this.handleBlur.bind(this);
         this.moveElement = this.moveElement.bind(this);
         this.setReminder = this.setReminder.bind(this);
+        this.deleteItem = this.deleteItem.bind(this);
     }
     componentWillReceiveProps(newProps){
         this.setState({
             done: ""
         })
-        console.log(this.state.description)
         let itemsArr=this.state.itemsArr;
         itemsArr.push(newProps.newItem);
         let description = this.state.description;
@@ -116,9 +159,7 @@ class DoneList extends React.Component {
         this.setState({
             itemsArr,
             description   
-        })     
-        console.log(this.state.description)
-  
+        })       
     }
 
     setReminder(e){
@@ -173,31 +214,29 @@ class DoneList extends React.Component {
         })
     }
 
+    deleteItem(e){
+        let currentArray = this.state.itemsArr; 
+        let currentDescription = this.state.description;
+        let index = currentArray.indexOf(e.target.innerHTML);
+        currentArray.splice(index,1);
+        currentDescription.splice(index, 1);
+        this.setState({
+            itemsArr: currentArray,
+            description: currentDescription
+        })
+    }
+
     updateList(e){  
         if(e.target.innerHTML == "X"){
-            
-            let currentArray = this.state.itemsArr; 
-            let currentDescription = this.state.description;
-            let index = currentArray.indexOf(e.target.innerHTML);
-            currentArray.splice(index,1);
-            currentDescription.splice(index, 1);
-         
-            this.setState({
-                itemsArr: currentArray,
-                description: currentDescription
-            })
+            this.deleteItem(e);
         }else if(e.target.innerHTML == "Mark Important") {
             this.markImportant(e.target);
-         
         } else if(e.target.classList[0] == "form-control") {
             this.handleBlur(e.target);
-            
         } else if(e.target.classList[0] == "selectpicker") {
             this.setReminder(e.target)
-            
         }else {
-            this.moveElement(e);
-             
+            this.moveElement(e);    
         }
     }
 
@@ -220,7 +259,6 @@ class DoneList extends React.Component {
     }
 
     render(){
-
         let name = this.state.itemsArr.map( 
             (x, i)=> <h4 id={i} onClick={this.updateList} className="list-item my-list-item" key={i}
             ><span key={i} className="float-left important">Mark Important</span>{x}<span key={"delete"+i} className="float-right">X</span><input placeholder="edit Text" className="form-control w-50" key={"edit"+i}></input>
@@ -246,7 +284,6 @@ class DoneList extends React.Component {
                 </div>
                 <Finished bringBack={this.returnBack} bringBackDescription={this.returnBackDescription} finished={this.state.doneArr} description={this.state.doneDesc}/>
             </div>
-           
         )
     }
 }
@@ -256,33 +293,35 @@ class TodoList extends React.Component {
         super()
         this.state = {
             text : "",
-            description: {description: "", dueDate: ""}
+            description: {description: "", dueDate: ""},
+            date: ""
         }
         this.updateList = this.updateList.bind(this);
     }
 
     updateList(e){
-        console.log(e.target.parentNode.children[3].value)
-        this.setState({
-            text: e.target.nextSibling.value, 
-            description: {description: e.target.parentNode.children[3].value, dueDate: e.target.parentNode.children[5].value}
-        })
-        e.target.nextSibling.value = "";
-        e.target.parentNode.children[3].value = "";
-        e.target.parentNode.children[5].value = "";
+        if(e.target.nextSibling.value != "" && e.target.parentNode.children[3].value != "" && e.target.parentNode.children[5].value != "" ){
+            this.setState({
+                text: e.target.nextSibling.value, 
+                description: {description: e.target.parentNode.children[3].value, dueDate: e.target.parentNode.children[5].value}
+            })
+            e.target.nextSibling.value = "";
+            e.target.parentNode.children[3].value = "";
+            e.target.parentNode.children[5].value = "";
+        }
+        alert("fill on fields please!")
     }
 
     render(){
         return(
             <div>
                 <button onClick={this.updateList} className="btn btn-primary mb-3 mt-3">Add new Todo</button>
-                <input placeholder="What do you plan to do?"  className="form-control w-75"></input>
+                <input  placeholder="What do you plan to do?"  className="form-control w-75 initial-input"></input>
                 <span>Describe your activity</span>
-                <input placeholder="Add description"  className="form-control w-75"></input>
+                <input  placeholder="Add description"  className="form-control w-75 initial-input"></input>
                 <span>When would you like to complete this task?</span>
-                <input type="date"  className="form-control w-25"></input>
+                <input  type="date"  className="form-control w-25 initial-input"></input>
                 <DoneList newItem={this.state.text} newDescription={this.state.description}/>
-                
             </div>
         )
     }
