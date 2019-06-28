@@ -34,28 +34,34 @@ class Finished extends React.Component {
     makeRedo(e){
         if(e.target.innerHTML === "X"){
             let currentArray = this.state.finished; 
+            let currentDescription = this.state.description;
             let index = currentArray.indexOf(e.target.innerHTML);
             currentArray.splice(index,1);
+            currentDescription.splice(index, 1);
             this.setState({
-                finished: currentArray
+                finished: currentArray,
+                description: currentDescription
             })
         }else{
             this.props.bringBack(e.target.innerHTML);
+
             let currentArray = this.state.finished; 
+            let currentDescription = this.state.description; 
             let index = currentArray.indexOf(e.target.innerHTML);
+            let item = currentDescription[index];
+            this.props.bringBackDescription({description: item.description, dueDate: item.dueDate});
             currentArray.splice(index,1);
+            currentDescription.splice(index, 1);
             console.log(currentArray)
             this.setState({
-                finished: currentArray
+                finished: currentArray,
+                description: currentDescription
             })
         }
     }
 
-
-    render(){
-    
+    render(){    
         let myItems = this.state.finished;
-
         let myDoneList = myItems.map( 
             (x, i)=> <h3 id={x} onClick={this.makeRedo}  key={`doneItem${i}`} className="new-item"
             >{x}<span key={i} className="float-right">X</span></h3>
@@ -93,6 +99,10 @@ class DoneList extends React.Component {
         this.returnBack = this.returnBack.bind(this);
         this.updateList = this.updateList.bind(this);
         this.markImportant = this.markImportant.bind(this);
+        this.returnBackDescription = this.returnBackDescription.bind(this);
+        this.handleBlur = this.handleBlur.bind(this);
+        this.moveElement = this.moveElement.bind(this);
+        this.setReminder = this.setReminder.bind(this);
     }
     componentWillReceiveProps(newProps){
         this.setState({
@@ -111,6 +121,46 @@ class DoneList extends React.Component {
   
     }
 
+    setReminder(e){
+       let time = parseInt(e.value); 
+       setTimeout( () => {
+        alert(`Please do ${e.parentNode.children[1].innerHTML} now!!!`)
+       }, 1000 * time * 60 )
+
+    }
+
+    handleBlur(e){
+        let currentArray = this.state.itemsArr;
+        let index = currentArray.indexOf(e.parentNode.children[1].innerHTML);
+        currentArray.splice(index, 1, e.value);
+        console.log(e.parentNode.children[1].innerHTML);
+        this.setState({
+            itemsArr: currentArray
+        })
+    }
+
+    moveElement(e){
+        let tempArr = this.state.doneArr;
+        tempArr.push(e.target.innerHTML);
+        let tempDescription = this.state.description;
+        tempDescription.push(this.state.doneDesc);
+        let currentArray = this.state.itemsArr; 
+        let index = currentArray.indexOf(e.target.innerHTML);
+        let doneDesc = this.state.doneDesc;
+        doneDesc.push(tempDescription[index]);
+        this.setState({
+            done: e.target.innerHTML,
+            doneArr: tempArr,
+            doneDesc: doneDesc
+        })
+        currentArray.splice(index,1);
+        tempDescription.splice(index,1)
+        this.setState({
+            itemsArr: currentArray,  
+            description: tempDescription
+        })     
+    }
+
     markImportant(e){
        
         e.nextSibling.classList.contains("important")? e.nextSibling.classList.remove('important'): e.nextSibling.classList.add('important');
@@ -125,6 +175,7 @@ class DoneList extends React.Component {
 
     updateList(e){  
         if(e.target.innerHTML == "X"){
+            
             let currentArray = this.state.itemsArr; 
             let currentDescription = this.state.description;
             let index = currentArray.indexOf(e.target.innerHTML);
@@ -138,31 +189,20 @@ class DoneList extends React.Component {
         }else if(e.target.innerHTML == "Mark Important") {
             this.markImportant(e.target);
          
+        } else if(e.target.classList[0] == "form-control") {
+            this.handleBlur(e.target);
+            
+        } else if(e.target.classList[0] == "selectpicker") {
+            this.setReminder(e.target)
+            
         }else {
-            let tempArr = this.state.doneArr;
-            tempArr.push(e.target.innerHTML);
-            let tempDescription = this.state.description;
-            tempDescription.push(this.state.doneDesc);
-            let currentArray = this.state.itemsArr; 
-            let index = currentArray.indexOf(e.target.innerHTML);
-            let doneDesc = this.state.doneDesc;
-            doneDesc.push(tempDescription[index]);
-            this.setState({
-                done: e.target.innerHTML,
-                doneArr: tempArr,
-                doneDesc: doneDesc
-            })
-            currentArray.splice(index,1);
-            tempDescription.splice(index,1)
-            this.setState({
-                itemsArr: currentArray,  
-                description: tempDescription
-            })       
+            this.moveElement(e);
+             
         }
     }
 
     returnBack(event){     
-        var itemsArr=this.state.itemsArr;
+        let itemsArr=this.state.itemsArr;
         itemsArr.push(event)
         this.setState({
             itemsArr, 
@@ -170,11 +210,26 @@ class DoneList extends React.Component {
         })    
     }
 
+    returnBackDescription(event){     
+        let descriptionArr = this.state.description;
+        console.log(event)
+        descriptionArr.push(event)
+        this.setState({
+            description: descriptionArr 
+        })    
+    }
+
     render(){
 
         let name = this.state.itemsArr.map( 
             (x, i)=> <h4 id={i} onClick={this.updateList} className="list-item my-list-item" key={i}
-            ><span key={i} className="float-left important">Mark Important</span>{x}<span key={"delete"+i} className="float-right">X</span></h4>
+            ><span key={i} className="float-left important">Mark Important</span>{x}<span key={"delete"+i} className="float-right">X</span><input placeholder="edit Text" className="form-control w-50" key={"edit"+i}></input>
+            <select className="selectpicker" key={"select"+i}>
+                <option value="5">5 minutes</option>
+                <option value="10">10 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">one hour</option>
+          </select></h4>
          )
          let description = this.state.description.map( 
             (x, i)=> <p id={i} className="list-item" key={i}
@@ -189,7 +244,7 @@ class DoneList extends React.Component {
                 <div className="description">
                     {description}
                 </div>
-                <Finished bringBack={this.returnBack} finished={this.state.doneArr} description={this.state.doneDesc}/>
+                <Finished bringBack={this.returnBack} bringBackDescription={this.returnBackDescription} finished={this.state.doneArr} description={this.state.doneDesc}/>
             </div>
            
         )
