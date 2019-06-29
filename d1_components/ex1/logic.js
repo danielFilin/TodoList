@@ -17,7 +17,7 @@ class Header extends React.Component {
     setReminder(e){
        
         let current_datetime = new Date();
-        let formatted_date = current_datetime.getHours() +":" +  current_datetime.getMinutes() +" " + current_datetime.getDate() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getFullYear()
+        let formatted_date =  current_datetime.getFullYear() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getDate() + " " + current_datetime.getHours() +":" +  current_datetime.getMinutes()
         console.log(formatted_date)
       
         this.setState({
@@ -59,7 +59,6 @@ class Finished extends React.Component {
         super(props)
         this.state = {
             finished: this.props.finished,
-            description: this.props.description
         }
         this.makeRedo = this.makeRedo.bind(this);
         this.deleteItem = this.deleteItem.bind(this);
@@ -106,23 +105,22 @@ class Finished extends React.Component {
     render(){    
         let myItems = this.state.finished;
         let myDoneList = myItems.map( 
-            (x, i)=> <h3 id={x} onClick={this.makeRedo}  key={`doneItem${i}`} className="new-item"
-            >{x}<span key={i} className="float-right">X</span></h3>
+            (x, i)=> <div onClick={this.makeRedo} key={i} className="card new-item" style={{width: "18rem"}}>
+            <div key={"body"+i} className="card-body">
+              <h5 key={"card-title"+i} className="card-title">{x.title}</h5>
+              <p key={"card-text"+i}  className="card-text">{x.description}</p>
+              <a key={"btn"+i}  href="#" className="btn btn-primary">Return to Todos</a>
+            </div>
+          </div>
          )  
 
-         let description = this.state.description.map( 
-            (x, i)=> <p id={i} className="list-item" key={i}
-            >{x.description}<span className="myDate">{x.dueDate}</span></p>
-         )
         return(
             <div>
                 <h2>Done List</h2>
                 <ul>
                     {myDoneList}
                 </ul>
-                <div className="description">
-                    {description}
-                </div>
+              
             </div>
         )
     }
@@ -132,12 +130,12 @@ class DoneList extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            itemsArr : ["Some Great Stuff", "more fun stuff"],
+            itemsArr : [{title: "Some Great Stuff", description: "very interesting activity", dueDate: "any time!"}, {title: "more fun stuff", description: "do it while you can", dueDate: "not now"}],
             done: "",
             doneArr: [],
-            description: [{description: "very interesting activity", dueDate: "any time!"},
-            {description: "do it while you can", dueDate: "not now"}],
-            doneDesc: []
+            //description: [{},
+            //{}],
+            //doneDesc: []
         }
         this.returnBack = this.returnBack.bind(this);
         this.updateList = this.updateList.bind(this);
@@ -172,9 +170,10 @@ class DoneList extends React.Component {
 
     handleBlur(e){
         let currentArray = this.state.itemsArr;
-        let index = currentArray.indexOf(e.parentNode.children[1].innerHTML);
-        currentArray.splice(index, 1, e.value);
-        console.log(e.parentNode.children[1].innerHTML);
+        let index = currentArray.findIndex(item => item.title == e.parentNode.children[0].innerHTML );
+        let updatedItem = currentArray[index];
+        updatedItem.title = e.previousSibling.value;
+        currentArray.splice(index, 1, updatedItem);
         this.setState({
             itemsArr: currentArray
         })
@@ -182,24 +181,19 @@ class DoneList extends React.Component {
 
     moveElement(e){
         let tempArr = this.state.doneArr;
-        tempArr.push(e.target.innerHTML);
-        let tempDescription = this.state.description;
-        tempDescription.push(this.state.doneDesc);
-        let currentArray = this.state.itemsArr; 
-        let index = currentArray.indexOf(e.target.innerHTML);
-        let doneDesc = this.state.doneDesc;
-        doneDesc.push(tempDescription[index]);
+        let myItem = e.target.parentNode.firstElementChild.innerHTML;
+        let myCurrentArray = this.state.itemsArr;
+        let indexToMove = myCurrentArray.findIndex(item => item.title == myItem );
+        tempArr.push(myCurrentArray[indexToMove]);
         this.setState({
-            done: e.target.innerHTML,
             doneArr: tempArr,
-            doneDesc: doneDesc
         })
-        currentArray.splice(index,1);
-        tempDescription.splice(index,1)
+      
+        myCurrentArray.splice(indexToMove,1);
         this.setState({
-            itemsArr: currentArray,  
-            description: tempDescription
+            itemsArr: myCurrentArray,  
         })     
+        console.log(this.state.itemsArr)
     }
 
     markImportant(e){
@@ -216,13 +210,10 @@ class DoneList extends React.Component {
 
     deleteItem(e){
         let currentArray = this.state.itemsArr; 
-        let currentDescription = this.state.description;
         let index = currentArray.indexOf(e.target.innerHTML);
         currentArray.splice(index,1);
-        currentDescription.splice(index, 1);
         this.setState({
             itemsArr: currentArray,
-            description: currentDescription
         })
     }
 
@@ -231,11 +222,11 @@ class DoneList extends React.Component {
             this.deleteItem(e);
         }else if(e.target.innerHTML == "Mark Important") {
             this.markImportant(e.target);
-        } else if(e.target.classList[0] == "form-control") {
+        } else if(e.target.innerHTML == "Edit") {
             this.handleBlur(e.target);
         } else if(e.target.classList[0] == "selectpicker") {
             this.setReminder(e.target)
-        }else {
+        }else if(e.target.innerHTML === "Mark as Done") {
             this.moveElement(e);    
         }
     }
@@ -245,7 +236,6 @@ class DoneList extends React.Component {
         itemsArr.push(event)
         this.setState({
             itemsArr, 
-
         })    
     }
 
@@ -258,20 +248,27 @@ class DoneList extends React.Component {
         })    
     }
 
+
     render(){
         let name = this.state.itemsArr.map( 
-            (x, i)=> <h4 id={i} onClick={this.updateList} className="list-item my-list-item" key={i}
-            ><span key={i} className="float-left important">Mark Important</span>{x}<span key={"delete"+i} className="float-right">X</span><input placeholder="edit Text" className="form-control w-50" key={"edit"+i}></input>
-            <select className="selectpicker" key={"select"+i}>
-                <option value="5">5 minutes</option>
-                <option value="10">10 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="60">one hour</option>
-          </select></h4>
-         )
-         let description = this.state.description.map( 
-            (x, i)=> <p id={i} className="list-item" key={i}
-            >{x.description}<span className="myDate">{x.dueDate}</span></p>
+            (x, i)=> <div id={i} onClick={this.updateList} className="card text-white bg-secondary mb-3 " style={{maxWidth: "25rem", maxHeight: "20rem"}} key={i}>
+                    <div key={"card-header"+i} className="card-header">My Todo</div>
+                    <div  key={"card-body"+i}  className="card-body">
+                        <h5  key={"card-title"+i}  className="card-title text-center">{x.title}</h5>
+                        <span key={"delete"+i} className="float-right text-warning cursor">X</span>
+                        <p  key={"card-text"+i}  className="card-text">{x.description}</p>
+                        <button key={"done"+i}  className="btn btn-info mr-3">Mark as Done</button>
+                        <span key={i} className="important bg-white rounded-circle cursor">Mark Important</span>
+                        <input placeholder="edit Text" className="form-control w-50 mt-1" key={"edit"+i}></input>
+                        <button className="btn btn-light mt-1 mr-1" key={"btn-light"+i}>Edit</button>
+                        <select className="selectpicker" key={"select"+i}>
+                            <option value="5">5 minutes</option>
+                            <option value="10">10 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">one hour</option>
+                        </select>
+                    </div>   
+                    </div>
          )
        
         return(
@@ -279,10 +276,7 @@ class DoneList extends React.Component {
                 <ul className="myList">
                     {name} 
                 </ul>
-                <div className="description">
-                    {description}
-                </div>
-                <Finished bringBack={this.returnBack} bringBackDescription={this.returnBackDescription} finished={this.state.doneArr} description={this.state.doneDesc}/>
+                <Finished bringBack={this.returnBack} bringBackDescription={this.returnBackDescription} finished={this.state.doneArr}/>
             </div>
         )
     }
@@ -292,9 +286,8 @@ class TodoList extends React.Component {
     constructor(){
         super()
         this.state = {
-            text : "",
-            description: {description: "", dueDate: ""},
-            date: ""
+            text : {title: "", description: "", dueDate: ""},
+            //description: {description: "", dueDate: ""},
         }
         this.updateList = this.updateList.bind(this);
     }
@@ -302,14 +295,13 @@ class TodoList extends React.Component {
     updateList(e){
         if(e.target.nextSibling.value != "" && e.target.parentNode.children[3].value != "" && e.target.parentNode.children[5].value != "" ){
             this.setState({
-                text: e.target.nextSibling.value, 
-                description: {description: e.target.parentNode.children[3].value, dueDate: e.target.parentNode.children[5].value}
+                text: {title: e.target.nextSibling.value, description: e.target.parentNode.children[3].value, dueDate: e.target.parentNode.children[5].value}, 
             })
             e.target.nextSibling.value = "";
             e.target.parentNode.children[3].value = "";
             e.target.parentNode.children[5].value = "";
         }
-        alert("fill on fields please!")
+        alert("fill in all fields please!")
     }
 
     render(){
@@ -321,7 +313,7 @@ class TodoList extends React.Component {
                 <input  placeholder="Add description"  className="form-control w-75 initial-input"></input>
                 <span>When would you like to complete this task?</span>
                 <input  type="date"  className="form-control w-25 initial-input"></input>
-                <DoneList newItem={this.state.text} newDescription={this.state.description}/>
+                <DoneList newItem={this.state.text}/>
             </div>
         )
     }

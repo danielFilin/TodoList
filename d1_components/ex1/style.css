@@ -62,3 +62,7 @@ padding-left:10px;
 .reminder-settings{
     display: none; 
 }
+
+.cursor {
+    cursor: pointer;
+}
