@@ -9,7 +9,6 @@ class Header extends React.Component {
         this.showReminder = this.showReminder.bind(this);
         this.setReminder = this.setReminder.bind(this);
     }
-
     showReminder(e){
         !e.target.nextSibling.classList.contains("reminder-settings")? e.target.nextSibling.classList.add("reminder-settings"): e.target.nextSibling.classList.remove("reminder-settings");
     }
@@ -19,13 +18,11 @@ class Header extends React.Component {
         let current_datetime = new Date();
         let formatted_date =  current_datetime.getFullYear() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getDate() + " " + current_datetime.getHours() +":" +  current_datetime.getMinutes()
         console.log(formatted_date)
-      
         this.setState({
             reminderDate: e.target.parentNode.firstElementChild.value,
             currentTime: formatted_date
         })
         console.log(this.state.currentTime, this.state.reminderDate)
-
     }
 
     render(){
@@ -65,30 +62,21 @@ class Finished extends React.Component {
         this.updateState = this.updateState.bind(this)
     }
 
-
     deleteItem(e){
         let currentArray = this.state.finished; 
-        let currentDescription = this.state.description;
         let index = currentArray.indexOf(e.target.innerHTML);
         currentArray.splice(index,1);
-        currentDescription.splice(index, 1);
         this.setState({
             finished: currentArray,
-            description: currentDescription
         })
     }
 
     updateState(e){
-        let currentArray = this.state.finished; 
-        let currentDescription = this.state.description; 
+        let currentArray = this.state.finished;
         let index = currentArray.indexOf(e.target.innerHTML);
-        let item = currentDescription[index];
-        this.props.bringBackDescription({description: item.description, dueDate: item.dueDate});
         currentArray.splice(index,1);
-        currentDescription.splice(index, 1);
         this.setState({
             finished: currentArray,
-            description: currentDescription
         })
     }
 
@@ -97,7 +85,10 @@ class Finished extends React.Component {
         if(e.target.innerHTML === "X"){
             this.deleteItem(e);
         }else{
-            this.props.bringBack(e.target.innerHTML);
+            let currentList = this.state.finished;
+            let toMoveItem = e.target.parentNode.firstElementChild.innerHTML;
+            let index = currentList.findIndex(item => item.title == toMoveItem ); 
+            this.props.bringBack(currentList[index]);
             this.updateState(e);
         }
     }
@@ -120,7 +111,6 @@ class Finished extends React.Component {
                 <ul>
                     {myDoneList}
                 </ul>
-              
             </div>
         )
     }
@@ -130,21 +120,18 @@ class DoneList extends React.Component {
     constructor(props){
         super(props)
         this.state = {
-            itemsArr : [{title: "Some Great Stuff", description: "very interesting activity", dueDate: "any time!"}, {title: "more fun stuff", description: "do it while you can", dueDate: "not now"}],
+            itemsArr : [{title: "Some Great Stuff", description: "very interesting activity", dueDate: "20-05-2022", creationDate: new Date()}, {title: "more fun stuff", description: "do it while you can", dueDate: "28-07-2019", creationDate: new Date()}],
             done: "",
             doneArr: [],
-            //description: [{},
-            //{}],
-            //doneDesc: []
         }
         this.returnBack = this.returnBack.bind(this);
         this.updateList = this.updateList.bind(this);
         this.markImportant = this.markImportant.bind(this);
-        this.returnBackDescription = this.returnBackDescription.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
         this.moveElement = this.moveElement.bind(this);
         this.setReminder = this.setReminder.bind(this);
         this.deleteItem = this.deleteItem.bind(this);
+        this.sortList = this.sortList.bind(this);
     }
     componentWillReceiveProps(newProps){
         this.setState({
@@ -152,20 +139,20 @@ class DoneList extends React.Component {
         })
         let itemsArr=this.state.itemsArr;
         itemsArr.push(newProps.newItem);
-        let description = this.state.description;
-        description.push(newProps.newDescription);
         this.setState({
             itemsArr,
-            description   
         })       
+    }
+
+    sortList(e){
+
     }
 
     setReminder(e){
        let time = parseInt(e.value); 
        setTimeout( () => {
-        alert(`Please do ${e.parentNode.children[1].innerHTML} now!!!`)
+        alert(`Please do ${e.parentNode.children[0].innerHTML} now!!!`)
        }, 1000 * time * 60 )
-
     }
 
     handleBlur(e){
@@ -181,6 +168,7 @@ class DoneList extends React.Component {
 
     moveElement(e){
         let tempArr = this.state.doneArr;
+ 
         let myItem = e.target.parentNode.firstElementChild.innerHTML;
         let myCurrentArray = this.state.itemsArr;
         let indexToMove = myCurrentArray.findIndex(item => item.title == myItem );
@@ -188,24 +176,23 @@ class DoneList extends React.Component {
         this.setState({
             doneArr: tempArr,
         })
-      
+        
         myCurrentArray.splice(indexToMove,1);
         this.setState({
             itemsArr: myCurrentArray,  
         })     
-        console.log(this.state.itemsArr)
     }
 
-    markImportant(e){
-       
-        e.nextSibling.classList.contains("important")? e.nextSibling.classList.remove('important'): e.nextSibling.classList.add('important');
+    markImportant(e){ 
         let tempArr = this.state.itemsArr;
-        let index = tempArr.indexOf(e.nextSibling.innerHTML);
+        let index = tempArr.findIndex(item => item.title == e.parentNode.firstElementChild.innerHTML );
+        let movedItem = tempArr[index];
         tempArr.splice(index, 1);
-        tempArr.unshift(e.nextSibling.innerHTML);
+        tempArr.unshift(movedItem);
         this.setState({
             itemsArr: tempArr
-        })
+        })   
+        e.parentNode.parentNode.parentNode.children[0].classList.contains("bg-danger")? e.parentNode.parentNode.parentNode.children[0].classList.remove('bg-danger'):e.parentNode.parentNode.parentNode.children[0].classList.add('bg-danger');
     }
 
     deleteItem(e){
@@ -239,16 +226,6 @@ class DoneList extends React.Component {
         })    
     }
 
-    returnBackDescription(event){     
-        let descriptionArr = this.state.description;
-        console.log(event)
-        descriptionArr.push(event)
-        this.setState({
-            description: descriptionArr 
-        })    
-    }
-
-
     render(){
         let name = this.state.itemsArr.map( 
             (x, i)=> <div id={i} onClick={this.updateList} className="card text-white bg-secondary mb-3 " style={{maxWidth: "25rem", maxHeight: "20rem"}} key={i}>
@@ -261,22 +238,26 @@ class DoneList extends React.Component {
                         <span key={i} className="important bg-white rounded-circle cursor">Mark Important</span>
                         <input placeholder="edit Text" className="form-control w-50 mt-1" key={"edit"+i}></input>
                         <button className="btn btn-light mt-1 mr-1" key={"btn-light"+i}>Edit</button>
+                        <span>Set a reminder</span>
                         <select className="selectpicker" key={"select"+i}>
                             <option value="5">5 minutes</option>
                             <option value="10">10 minutes</option>
                             <option value="30">30 minutes</option>
                             <option value="60">one hour</option>
                         </select>
+                        <label className="mr-3">Due Date of the Todo:</label>
+                        <span>{x.dueDate}</span>
                     </div>   
                     </div>
          )
-       
         return(
             <div>
+                <label>Sort Items</label>
+                <input className="form-control w-25 mb-3" onKeyPress={this.sortList}></input>
                 <ul className="myList">
                     {name} 
                 </ul>
-                <Finished bringBack={this.returnBack} bringBackDescription={this.returnBackDescription} finished={this.state.doneArr}/>
+                <Finished bringBack={this.returnBack} finished={this.state.doneArr}/>
             </div>
         )
     }
@@ -287,7 +268,6 @@ class TodoList extends React.Component {
         super()
         this.state = {
             text : {title: "", description: "", dueDate: ""},
-            //description: {description: "", dueDate: ""},
         }
         this.updateList = this.updateList.bind(this);
     }
@@ -300,8 +280,9 @@ class TodoList extends React.Component {
             e.target.nextSibling.value = "";
             e.target.parentNode.children[3].value = "";
             e.target.parentNode.children[5].value = "";
+        }else{
+            alert("fill in all fields please!")
         }
-        alert("fill in all fields please!")
     }
 
     render(){
@@ -313,6 +294,7 @@ class TodoList extends React.Component {
                 <input  placeholder="Add description"  className="form-control w-75 initial-input"></input>
                 <span>When would you like to complete this task?</span>
                 <input  type="date"  className="form-control w-25 initial-input"></input>
+                <h2>What needs to be done?</h2>
                 <DoneList newItem={this.state.text}/>
             </div>
         )
